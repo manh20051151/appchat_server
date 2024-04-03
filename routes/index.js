@@ -9,4 +9,4 @@ const initRoutes = (app)=>{
     app.use(notFoud)
     app.use(errHandler)
 }
-module.exports = initRoutes
+module.exports = initRoutes 
