@@ -5,6 +5,7 @@ const jwt =require('jsonwebtoken')
 const sendMail = require('../ultils/sendMail')
 const crypto = require('crypto')
 const makeToken = require('uniqid')
+const user = require('../models/user')
 
 // const register = asyncHandler(async(req, res)=>{
 //     const {name, username, password} = req.body
@@ -101,16 +102,16 @@ const login = asyncHandler(async(req, res)=>{
     const response = await User.findOne({username})
     if(response && await response.isCorrectPassword(password)){
        // tách pass và role ra khỏi response
-        const{password, role, ...userData} = response.toObject()
+        const{password, role, refreshToken ,...userData} = response.toObject()
        //Tạo accessToken
         const accessToken = generateAccessToken(response._id, role)
-        // tọa refreshToken
-        const refreshToken = generateRefreshToken(response._id)
+        // tạo refreshToken
+        const newRefreshToken = generateRefreshToken(response._id)
         
         //Lưu refreshToken vào db
-        await User.findByIdAndUpdate(response.id, {refreshToken}, {new: true})
+        await User.findByIdAndUpdate(response.id, {refreshToken: newRefreshToken}, {new: true})
         // lưu refreshToken vào cookie
-        res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 7*24*60*60*1000})
+        res.cookie('refreshToken', newRefreshToken, {httpOnly: true, maxAge: 7*24*60*60*1000})
         return res.status(200).json({
             success: true,
             accessToken,
@@ -127,10 +128,10 @@ const login = asyncHandler(async(req, res)=>{
 const getCurrent = asyncHandler(async(req, res)=>{
     const {_id} = req.user
 
-    const user = await User.findById({_id}).select('-refreshToken -role -password')
+    const user = await User.findById({_id}).select('-refreshToken -password')
    
     return res.status(200).json({
-        success: true,
+        success: user ? true : false,
         rs: user ? user : 'User not found'
     })
 })
@@ -224,6 +225,53 @@ const resetPassword = asyncHandler(async (req, res)=>{
     })
 })
 
+const getUsers = asyncHandler(async (req, res)=>{
+    const response = await User.find().select('-refreshToken -password')
+    return res.status(200).json({
+        success: response ? true : false,
+        users: response
+    })
+})
+
+const deleteUser = asyncHandler(async (req, res)=>{
+    const { _id} = req.query
+    if(!_id){
+        throw new Error('missing inputs')
+    }
+    const response = await User.findByIdAndDelete(_id)
+
+    return res.status(200).json({
+        success: response ? true : false,
+        deletedUer: response ? `User with email ${response.username} deleted` : 'no user delete'
+    })
+})
+
+const updateUser = asyncHandler(async (req, res)=>{
+    const { _id} = req.user
+    if(!_id || Object.keys(req.body).length === 0){
+        throw new Error('missing inputs')
+    }
+    const response = await User.findByIdAndUpdate(_id, req.body, {new: true}).select('-password')
+
+    return res.status(200).json({
+        success: response ? true : false,
+        updatedUer: response ? response : 'some thing went wrong'
+    })
+})
+
+const updateUserByAdmin = asyncHandler(async (req, res)=>{
+    const { uid} = req.params
+    if(Object.keys(req.body).length === 0){
+        throw new Error('missing inputs')
+    }
+    const response = await User.findByIdAndUpdate(uid, req.body, {new: true}).select('-password')
+
+    return res.status(200).json({
+        success: response ? true : false,
+        updatedUer: response ? response : 'some thing went wrong'
+    })
+})
+
 module.exports = {
     register, 
     login, 
@@ -233,4 +281,8 @@ module.exports = {
     forgotPassword,
     resetPassword,
     finalRegister,
+    getUsers,
+    deleteUser,
+    updateUser,
+    updateUserByAdmin,
 }
