@@ -4,8 +4,11 @@ const dbConnect = require('./config/dbconnect')
 const initRoutes = require('./routes')
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
+const { app, server } = require('./socket/socket')
 
-const app = express()
+// const app = express()
+
+
 app.use(cors({
     origin: process.env.CLIENT_URL,
     methods: ['POST', 'PUT', 'GET', 'DELETE'],
@@ -21,7 +24,7 @@ dbConnect()
 initRoutes(app)
 
 
-app.listen(port, ()=>{
+server.listen(port, ()=>{
     console.log("on port: "+ port)
 })
 
