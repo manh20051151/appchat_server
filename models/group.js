@@ -1,8 +1,13 @@
 const mongoose = require("mongoose");
 
-const conversationSchema = new mongoose.Schema(
+const groupSchema = new mongoose.Schema(
 	{
 
+        nameGroup: {
+            type: String,
+            required: true,
+            trim: true,
+        },
 		participants: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
@@ -20,6 +25,6 @@ const conversationSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
-const Conversation = mongoose.model("Conversation", conversationSchema);
+const Group = mongoose.model("Group", groupSchema);
 
-module.exports = Conversation;
+module.exports = Group;

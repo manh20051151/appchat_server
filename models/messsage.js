@@ -10,9 +10,17 @@ const messageSchema = new mongoose.Schema(
     reciverId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // required: true,
+    },
+    groupId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Group",
     },
     message: {
+      type: String,
+      required: false,
+    },
+    image: {
       type: String,
       required: false,
     },

@@ -7,8 +7,11 @@ const cors = require('cors')
 const { app, server } = require('./socket/socket')
 
 // const app = express()
+app.use(express.urlencoded({extended: true}))
+app.use("/uploads/images", express.static("uploads/images"))
 
-
+app.set('view engine', 'js') // Khai báo rằng app sẽ dùng engine ejs để render trang web
+// app.set('views', './views') 
 app.use(cors({
     origin: process.env.CLIENT_URL,
     methods: ['POST', 'PUT', 'GET', 'DELETE'],
